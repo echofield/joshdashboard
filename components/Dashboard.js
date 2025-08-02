@@ -5,49 +5,52 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users,
     Target,
-    MoreVertical,
-    RefreshCw,
-    TrendingUp,
-    Clock,
-    Zap,
-    Info,
     CheckCircle,
     ClipboardList,
     AlertCircle,
-    Sparkles
+    Sparkles,
+    Send,
+    MessageSquare,
+    CalendarDays,
+    RefreshCw,
+    MoreVertical,
+    TrendingUp,
+    Zap,
+    Lock
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
-// --- MOCK DATA AND API ---
+// --- MOCK API FOR JOSH W. ---
 const mockApi = {
     getDashboardData: () => {
         return new Promise(resolve => {
             setTimeout(() => {
                 const mockData = {
                     stats: {
-                        clientsOnTrack: 14,
-                        avgProgressScore: 85,
-                        newLeadsThisMonth: 124,
-                        avgTimeInPlan: 45
+                        activeClients: 24,
+                        roadmapCompletion: 68,
+                        tasksCompleted: 157,
+                        nudgesSent: 42
                     },
-                    monthlyEngagement: [
-                        { month: 'Jan', engagement: 300 }, { month: 'Feb', engagement: 450 },
-                        { month: 'Mar', engagement: 620 }, { month: 'Apr', engagement: 580 },
-                        { month: 'May', engagement: 750 }, { month: 'Jun', engagement: 910 },
+                    clientActivity: [
+                        { month: 'Jan', activity: 45 }, { month: 'Feb', activity: 60 },
+                        { month: 'Mar', activity: 75 }, { month: 'Apr', activity: 70 },
+                        { month: 'May', activity: 90 }, { month: 'Jun', activity: 110 },
                     ],
-                    contentPerformance: [
-                        { name: 'Blog Posts', value: 35, color: '#8B5CF6' }, { name: 'Videos', value: 25, color: '#14B8A6' },
-                        { name: 'Case Studies', value: 20, color: '#3B82F6' }, { name: 'Social Media', value: 20, color: '#F59E0B' },
-                    ],
-                    upcomingMilestones: [
-                        { name: 'Define Buyer Persona', progress: 100, id: 'day-1' }, { name: 'Develop Social Media Strategy', progress: 85, id: 'day-2' },
-                        { name: 'Launch Lead Generation Campaign', progress: 20, id: 'day-3' }, { name: 'Create 7-Day Content Plan', progress: 50, id: 'day-4' },
+                    sevenDayRoadmap: [
+                        { day: 1, title: 'Define Your Goals & SMART Objectives', status: 'complete' },
+                        { day: 2, title: 'Finalize Budget & Target Segments', status: 'complete' },
+                        { day: 3, title: 'Explore Growth Hacks & Marketing Mediums', status: 'inProgress' },
+                        { day: 4, title: 'Integrate SEO & PPC Resources', status: 'inProgress' },
+                        { day: 5, title: 'Draft Promotional Campaign', status: 'locked' },
+                        { day: 6, title: 'Launch & Gather Initial Data', status: 'locked' },
+                        { day: 7, title: 'Prepare for Implementation Audit', status: 'locked' },
                     ],
                     recentActivity: [
-                        { client: 'Jane Doe', action: 'Completed "Develop Social Media Strategy"', date: new Date('2025-07-31'), status: 'completed' },
-                        { client: 'Acme Corp', action: 'Requested a call about advanced SEO', date: new Date('2025-07-30'), status: 'info' },
-                        { client: 'Marketing Masters', action: 'Uploaded a new content asset', date: new Date('2025-07-29'), status: 'completed' },
-                        { client: 'John Smith', action: 'Failed to complete "Week 2 Tasks"', date: new Date('2025-07-28'), status: 'alert' },
+                        { client: 'Innovate Inc.', action: 'Completed "Finalize Budget & Target Segments"', date: new Date('2025-08-01'), status: 'completed' },
+                        { client: 'Growth Co.', action: 'Is behind on "Explore Growth Hacks"', date: new Date('2025-07-31'), status: 'alert' },
+                        { client: 'Momentum LLC', action: 'Requested an Audit Session', date: new Date('2025-07-30'), status: 'info' },
+                        { client: 'Future Forward', action: 'Completed "Define Your Goals"', date: new Date('2025-07-29'), status: 'completed' },
                     ]
                 };
                 resolve(mockData);
@@ -56,8 +59,8 @@ const mockApi = {
     }
 };
 
-// This function calls our own API route to securely use the Gemini API
-const generatePromptWithGemini = async (clientName, task) => {
+// This function calls our API route to generate the Smart Nudge
+const generateNudgeWithGemini = async (clientName, task) => {
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
@@ -72,29 +75,30 @@ const generatePromptWithGemini = async (clientName, task) => {
         const result = await response.json();
         return result.message;
     } catch (error) {
-        console.error("Error generating prompt:", error);
-        return `Could not generate a prompt for ${clientName}. Please try again.`;
+        console.error("Error generating nudge:", error);
+        return `Could not generate a nudge for ${clientName}. Please try again.`;
     }
 };
 
-// --- MarketingDashboard Component ---
-function MarketingDashboard() {
-    const [stats, setStats] = useState({ clientsOnTrack: 0, avgProgressScore: 0, newLeadsThisMonth: 0, avgTimeInPlan: 0 });
-    const [dashboardData, setDashboardData] = useState({ monthlyEngagement: [], contentPerformance: [], upcomingMilestones: [], recentActivity: [] });
-    const [promptData, setPromptData] = useState(null);
-    const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
-    const [promptMessage, setPromptMessage] = useState('');
+// --- Dashboard Component for Josh W. ---
+function Dashboard() {
+    const [stats, setStats] = useState({ activeClients: 0, roadmapCompletion: 0, tasksCompleted: 0, nudgesSent: 0 });
+    const [dashboardData, setDashboardData] = useState({ clientActivity: [], sevenDayRoadmap: [], recentActivity: [] });
+    const [nudgeData, setNudgeData] = useState(null);
+    const [isGeneratingNudge, setIsGeneratingNudge] = useState(false);
+    const [nudgeMessage, setNudgeMessage] = useState('');
+    const [broadcastMessage, setBroadcastMessage] = useState("Quick update: I've added a new guide on B2B lead generation to the resources section. Let's crush it this week!");
     const [isLoading, setIsLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [error, setError] = useState(null);
 
     const loadDashboardData = useCallback(async () => {
-        const generatePrompt = async (clientName, task) => {
-            setIsGeneratingPrompt(true);
-            setPromptData({ client: clientName, task: task });
-            const generatedMessage = await generatePromptWithGemini(clientName, task);
-            setPromptMessage(generatedMessage);
-            setIsGeneratingPrompt(false);
+        const generateNudge = async (clientName, task) => {
+            setIsGeneratingNudge(true);
+            setNudgeData({ client: clientName, task: task });
+            const generatedMessage = await generateNudgeWithGemini(clientName, task);
+            setNudgeMessage(generatedMessage);
+            setIsGeneratingNudge(false);
         };
         
         try {
@@ -105,9 +109,10 @@ function MarketingDashboard() {
             setDashboardData(data);
             setLastUpdate(new Date());
 
+            // Auto-trigger a nudge for the first completed activity if none is active
             const completedActivity = data.recentActivity.find(act => act.status === 'completed');
-            if (completedActivity && !promptData) {
-                generatePrompt(completedActivity.client, completedActivity.action);
+            if (completedActivity && !nudgeData) {
+                generateNudge(completedActivity.client, completedActivity.action);
             }
         } catch (err) {
             console.error('Failed to load dashboard data:', err);
@@ -115,332 +120,207 @@ function MarketingDashboard() {
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading, promptData]);
+    }, [isLoading, nudgeData]);
 
     useEffect(() => {
         loadDashboardData();
-        const interval = setInterval(loadDashboardData, 30000);
-        return () => clearInterval(interval);
     }, [loadDashboardData]);
 
-    const handleSendPrompt = () => {
-        console.log(`Sending prompt to ${promptData.client}: "${promptMessage}"`);
-        alert(`Prompt sent to ${promptData.client}!`);
-        setPromptData(null);
-        setPromptMessage('');
+
+    const handleSendNudge = () => {
+        console.log(`Sending nudge to ${nudgeData.client}: "${nudgeMessage}"`);
+        alert(`Nudge sent to ${nudgeData.client}!`);
+        setNudgeData(null);
+        setNudgeMessage('');
+    };
+    
+    const handleSendBroadcast = () => {
+        console.log(`Sending broadcast message: "${broadcastMessage}"`);
+        alert('Broadcast message sent to all clients!');
     };
 
     const refreshData = () => {
         loadDashboardData();
     };
 
-    const glassStyle = {
-        backdropFilter: 'blur(16px)',
-        background: 'rgba(255, 255, 255, 0.1)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)'
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'completed': return 'bg-green-100 text-green-700';
-            case 'info': return 'bg-blue-100 text-blue-700';
-            case 'alert': return 'bg-red-100 text-red-700';
-            default: return 'bg-yellow-100 text-yellow-700';
-        }
-    };
+    const cardStyle = "bg-white/60 p-6 rounded-2xl shadow-lg border border-white/30";
 
     const getActivityIcon = (status) => {
         switch (status) {
-            case 'completed': return <CheckCircle className="w-4 h-4 text-green-500" />;
-            case 'info': return <Info className="w-4 h-4 text-blue-500" />;
-            case 'alert': return <AlertCircle className="w-4 h-4 text-red-500" />;
-            default: return <ClipboardList className="w-4 h-4 text-yellow-500" />;
+            case 'completed': return <CheckCircle className="w-5 h-5 text-teal-500" />;
+            case 'alert': return <AlertCircle className="w-5 h-5 text-red-500" />;
+            default: return <ClipboardList className="w-5 h-5 text-blue-500" />;
+        }
+    };
+    
+    const getRoadmapStatusIcon = (status) => {
+        switch (status) {
+            case 'complete': return <CheckCircle className="w-6 h-6 text-teal-500" />;
+            case 'inProgress': return <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" style={{ animationDuration: '3s' }} />;
+            case 'locked': return <Lock className="w-6 h-6 text-gray-400" />;
+            default: return null;
         }
     };
 
     if (error) {
         return (
-            <div className="space-y-6">
-                <div className="rounded-2xl p-8 shadow-xl text-center" style={glassStyle}>
-                    <div className="text-red-500 mb-4">
-                        <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-                        <h2 className="text-xl mb-2">Dashboard Error</h2>
-                        <p className="text-sm">{error}</p>
-                    </div>
-                    <button
-                        onClick={refreshData}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
-                    >
-                        Try Again
-                    </button>
-                </div>
+            <div className={`p-8 rounded-2xl shadow-xl text-center ${cardStyle}`}>
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl mb-2 text-gray-800">Dashboard Error</h2>
+                <p className="text-sm text-gray-600">{error}</p>
+                <button onClick={refreshData} className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
+                    Try Again
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
+            {/* --- Header --- */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-                        Sadia K
-                    </h1>
-                    <p className="text-gray-600 mt-1">Guided implementation and progress tracking for clients.</p>
+                    <h1 className="text-4xl font-bold text-gray-800">Josh W. | Implementation OS</h1>
+                    <p className="text-gray-500 mt-1">Your personalized marketing strategy, in action.</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={refreshData}
-                        className="p-2 rounded-xl hover:bg-white/30 transition-colors border border-white/30"
-                        style={glassStyle}
-                        disabled={isLoading || isGeneratingPrompt}
-                    >
-                        <RefreshCw className={`w-4 h-4 text-gray-700 ${isLoading ? 'animate-spin' : ''}`} />
+                    <button onClick={refreshData} className="p-3 rounded-full bg-white/60 border border-white/30 shadow-md hover:bg-gray-50 transition-colors" disabled={isLoading}>
+                        <RefreshCw className={`w-5 h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
                     </button>
-                    <div className="rounded-xl px-6 py-3 shadow-lg border border-white/30" style={glassStyle}>
-                        <span className="text-sm text-gray-700">
-                            Updated: {lastUpdate.toLocaleTimeString()}
-                        </span>
+                    <div className={`${cardStyle} px-4 py-3`}>
+                        <span className="text-sm text-gray-600">Updated: {lastUpdate.toLocaleTimeString()}</span>
                     </div>
                 </div>
             </div>
 
-            {promptData && (
-                <div className="rounded-2xl p-6 shadow-xl bg-blue-50/50 border-blue-200" style={glassStyle}>
+            {/* --- Smart Nudge & Broadcast --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Smart Nudge */}
+                <div className={cardStyle}>
                     <div className="flex items-start gap-4">
-                        <Sparkles className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                        <Sparkles className="w-8 h-8 text-purple-600 flex-shrink-0 mt-1" />
                         <div className="flex-1">
-                            <h3 className="text-lg mb-2 text-blue-800">
-                                Suggested Prompt for {promptData.client}
-                            </h3>
-                            <p className="text-sm mb-3 text-blue-700">
-                                {isGeneratingPrompt ? 'Generating personalized message...' : 'The system has detected a key moment and has drafted a personalized message for your review.'}
-                            </p>
-
-                            {!isGeneratingPrompt && (
+                            <h3 className="text-lg font-semibold mb-1 text-gray-800">Smart Nudge</h3>
+                            {nudgeData ? (
                                 <>
+                                    <p className="text-sm mb-3 text-gray-600">
+                                        For <span className="font-semibold">{nudgeData.client}</span>, who just completed: <span className="italic">"{nudgeData.task}"</span>
+                                    </p>
                                     <textarea
-                                        value={promptMessage}
-                                        onChange={(e) => setPromptMessage(e.target.value)}
-                                        className="w-full h-24 p-3 mb-4 text-sm text-gray-800 bg-white/50 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-blue-500/50"
+                                        value={isGeneratingNudge ? "Generating personalized message..." : nudgeMessage}
+                                        onChange={(e) => setNudgeMessage(e.target.value)}
+                                        className="w-full h-24 p-3 mb-3 text-sm text-gray-800 bg-gray-50/80 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                                        disabled={isGeneratingNudge}
                                     />
                                     <div className="flex justify-end gap-2">
-                                        <button
-                                            onClick={() => setPromptData(null)}
-                                            className="px-3 py-1 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm"
-                                        >
-                                            Dismiss
-                                        </button>
-                                        <button
-                                            onClick={handleSendPrompt}
-                                            className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                        >
-                                            Send Prompt
-                                        </button>
+                                        <button onClick={() => setNudgeData(null)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm">Dismiss</button>
+                                        <button onClick={handleSendNudge} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm flex items-center gap-2"><Send className="w-4 h-4" />Send Nudge</button>
                                     </div>
                                 </>
+                            ) : (
+                                <p className="text-sm text-gray-500 pt-2">No key actions detected recently. The system is monitoring client progress for opportunities to engage.</p>
                             )}
                         </div>
                     </div>
                 </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" style={glassStyle}>
-                    <div className="flex items-center justify-between">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Users className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex items-center text-green-600">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            <span className="text-sm">+12%</span>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="text-2xl text-gray-800">{stats.clientsOnTrack}</h3>
-                        <p className="text-sm text-gray-600 mt-1">Clients On Track</p>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" style={glassStyle}>
-                    <div className="flex items-center justify-between">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Target className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex items-center text-green-600">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            <span className="text-sm">+8%</span>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="text-2xl text-gray-800">{stats.avgProgressScore}%</h3>
-                        <p className="text-sm text-gray-600 mt-1">Avg. Progress Score</p>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" style={glassStyle}>
-                    <div className="flex items-center justify-between">
-                        <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex items-center text-red-600">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            <span className="text-sm">-5%</span>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="text-2xl text-gray-800">{stats.newLeadsThisMonth}</h3>
-                        <p className="text-sm text-gray-600 mt-1">New Leads This Month</p>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105" style={glassStyle}>
-                    <div className="flex items-center justify-between">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <Clock className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex items-center text-green-600">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            <span className="text-sm">+2 days</span>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="text-2xl text-gray-800">{stats.avgTimeInPlan} days</h3>
-                        <p className="text-sm text-gray-600 mt-1">Avg. Time in Plan</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-2xl p-6 shadow-xl" style={glassStyle}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg text-gray-800">Monthly Engagement</h3>
-                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                    </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <AreaChart data={dashboardData.monthlyEngagement}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                            <YAxis tick={{ fontSize: 12 }} />
-                            <Area
-                                type="monotone"
-                                dataKey="engagement"
-                                stroke="#8B5CF6"
-                                fill="url(#gradient1)"
-                                strokeWidth={2}
+                {/* Broadcast Message */}
+                <div className={cardStyle}>
+                    <div className="flex items-start gap-4">
+                        <MessageSquare className="w-8 h-8 text-teal-600 flex-shrink-0 mt-1" />
+                        <div className="flex-1">
+                            <h3 className="text-lg font-semibold mb-1 text-gray-800">Broadcast Message</h3>
+                             <p className="text-sm mb-3 text-gray-600">Send a message to all active clients.</p>
+                            <textarea
+                                value={broadcastMessage}
+                                onChange={(e) => setBroadcastMessage(e.target.value)}
+                                className="w-full h-24 p-3 mb-3 text-sm text-gray-800 bg-gray-50/80 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                             />
-                            <defs>
-                                <linearGradient id="gradient1" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8} />
-                                    <stop offset="100%" stopColor="#14B8A6" stopOpacity={0.1} />
-                                </linearGradient>
-                            </defs>
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="rounded-2xl p-6 shadow-xl" style={glassStyle}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg text-gray-800">Content Performance</h3>
-                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                    </div>
-                    <ResponsiveContainer width="100%" height={150}>
-                        <PieChart>
-                            <Pie
-                                data={dashboardData.contentPerformance}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={40}
-                                outerRadius={75}
-                                dataKey="value"
-                            >
-                                {dashboardData.contentPerformance.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="flex flex-wrap gap-4 mt-4">
-                        {dashboardData.contentPerformance.map((item, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                <span className="text-sm text-gray-700">{item.name} ({item.value})</span>
+                            <div className="flex justify-end">
+                                <button onClick={handleSendBroadcast} className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm flex items-center gap-2"><Send className="w-4 h-4" />Send Broadcast</button>
                             </div>
-                        ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-2xl p-6 shadow-xl" style={glassStyle}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg text-gray-800">Upcoming Milestones</h3>
-                        <span className="text-sm text-gray-600">4 active</span>
-                    </div>
-                    <div className="space-y-4">
-                        {dashboardData.upcomingMilestones.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                                    <span className="text-sm text-gray-800 truncate max-w-48">{item.name}</span>
+            {/* --- KPIs --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className={cardStyle}>
+                    <div className="flex items-center justify-between"><div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center"><Users className="w-6 h-6 text-purple-600" /></div><TrendingUp className="w-5 h-5 text-green-500"/></div>
+                    <div className="mt-4"><h3 className="text-3xl font-bold text-gray-800">{stats.activeClients}</h3><p className="text-sm text-gray-500 mt-1">Active Clients</p></div>
+                </div>
+                <div className={cardStyle}>
+                    <div className="flex items-center justify-between"><div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center"><Target className="w-6 h-6 text-teal-600" /></div><TrendingUp className="w-5 h-5 text-green-500"/></div>
+                    <div className="mt-4"><h3 className="text-3xl font-bold text-gray-800">{stats.roadmapCompletion}%</h3><p className="text-sm text-gray-500 mt-1">Avg. Roadmap Completion</p></div>
+                </div>
+                <div className={cardStyle}>
+                    <div className="flex items-center justify-between"><div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"><CheckCircle className="w-6 h-6 text-blue-600" /></div><TrendingUp className="w-5 h-5 text-green-500"/></div>
+                    <div className="mt-4"><h3 className="text-3xl font-bold text-gray-800">{stats.tasksCompleted}</h3><p className="text-sm text-gray-500 mt-1">Tasks Completed (Month)</p></div>
+                </div>
+                 <div className={cardStyle}>
+                    <div className="flex items-center justify-between"><div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center"><Zap className="w-6 h-6 text-orange-600" /></div><TrendingUp className="w-5 h-5 text-red-500"/></div>
+                    <div className="mt-4"><h3 className="text-3xl font-bold text-gray-800">{stats.nudgesSent}</h3><p className="text-sm text-gray-500 mt-1">Nudges Sent (Month)</p></div>
+                </div>
+            </div>
+
+            {/* --- 7-Day Roadmap & Recent Activity --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                 <div className={`lg:col-span-3 ${cardStyle}`}>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">7-Day Implementation Roadmap</h3>
+                    <div className="space-y-3">
+                        {dashboardData.sevenDayRoadmap.map((item) => (
+                            <div key={item.day} className={`p-4 rounded-xl flex items-center gap-4 border ${item.status === 'inProgress' ? 'bg-purple-50 border-purple-200' : 'bg-gray-50/80 border-gray-200'}`}>
+                                {getRoadmapStatusIcon(item.status)}
+                                <div className="flex-1">
+                                    <p className={`font-semibold ${item.status === 'locked' ? 'text-gray-500' : 'text-gray-800'}`}>Day {item.day}: {item.title}</p>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-16 h-2 bg-gray-200 rounded-full">
-                                        <div
-                                            className="h-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full transition-all duration-300"
-                                            style={{ width: `${item.progress}%` }}
-                                        ></div>
-                                    </div>
-                                    <span className="text-xs text-gray-600">{Math.round(item.progress)}%</span>
+                                <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                                    item.status === 'complete' ? 'bg-teal-100 text-teal-800' :
+                                    item.status === 'inProgress' ? 'bg-purple-100 text-purple-800' : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
-
-                <div className="rounded-2xl p-6 shadow-xl" style={glassStyle}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg text-gray-800">Recent Client Activity</h3>
-                        <button className="text-sm text-purple-600 hover:text-purple-700 transition-colors">
-                            View All
-                        </button>
-                    </div>
+                <div className={`lg:col-span-2 ${cardStyle}`}>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Client Activity</h3>
                     <div className="space-y-4">
                         {dashboardData.recentActivity.map((activity, index) => (
-                            <div key={index} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center">
-                                        <span className="text-white text-sm">
-                                            {activity.client?.substring(0, 2).toUpperCase() || 'R'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-gray-800 truncate max-w-32">{activity.client}</h4>
-                                        <p className="text-sm text-gray-600">{activity.action}</p>
-                                    </div>
+                            <div key={index} className="flex items-center gap-4">
+                                <div>{getActivityIcon(activity.status)}</div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-800">{activity.client}</p>
+                                    <p className="text-xs text-gray-500">{activity.action}</p>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        {getActivityIcon(activity.status)}
-                                        <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(activity.status)}`}>
-                                            {activity.status}
-                                        </span>
-                                    </div>
-                                    <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                                        <MoreVertical className="w-4 h-4 text-gray-600" />
-                                    </button>
-                                </div>
+                                <p className="text-xs text-gray-400">{activity.date.toLocaleDateString()}</p>
                             </div>
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* --- Charts --- */}
+            <div className={cardStyle}>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Client Activity Over Time</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={dashboardData.clientActivity}>
+                        <defs>
+                            <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.7}/>
+                                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                        <Area type="monotone" dataKey="activity" stroke="#8B5CF6" strokeWidth={2} fill="url(#activityGradient)" />
+                    </AreaChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );
 }
 
-export default MarketingDashboard;
+export default Dashboard;

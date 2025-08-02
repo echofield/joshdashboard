@@ -4,13 +4,11 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Rocket, Users, Calendar, Target, Settings } from 'lucide-react';
 
-// This is the key change:
-// We dynamically import the Dashboard component and disable Server-Side Rendering (ssr: false).
-// This prevents the charting library from crashing the page.
+// Fixed the Dashboard import - make sure this path is correct
 const Dashboard = dynamic(() => import('../components/Dashboard'), {
     ssr: false,
     loading: () => (
-        <div className="flex items-center justify-center h-screen w-full">
+        <div className="flex items-center justify-center h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50">
             <p className="text-lg text-gray-600">Loading Dashboard...</p>
         </div>
     )
@@ -45,29 +43,22 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         ))
     );
 
-    const glassStrongStyle = {
-        backdropFilter: 'blur(20px)',
-        background: 'rgba(255, 255, 255, 0.15)',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        boxShadow: '0 12px 40px rgba(31, 38, 135, 0.2)'
-    };
-
     return (
         <aside className="p-4 w-64 flex-shrink-0">
-            <div className="rounded-3xl p-6 h-full flex flex-col" style={glassStrongStyle}>
+            <div className="rounded-3xl p-6 h-full flex flex-col bg-white/15 backdrop-blur-xl border border-white/30 shadow-2xl">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center">
                         <Rocket className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-                        Sadia K
+                        Josh W.
                     </span>
                 </div>
                 <nav className="flex-1 space-y-2">
                     {renderNavItems()}
                 </nav>
                 <div className="mt-8 pt-6 border-t border-white/20">
-                    <p className="text-sm text-gray-700">Powered by Symi</p>
+                    <p className="text-sm text-gray-700">Implementation OS</p>
                 </div>
             </div>
         </aside>
@@ -84,25 +75,25 @@ export default function HomePage() {
                 return <Dashboard />;
             case "clients":
                 return (
-                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg">
+                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg bg-white/60 rounded-2xl">
                         <p>Clients view coming soon...</p>
                     </div>
                 );
             case "content":
                 return (
-                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg">
+                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg bg-white/60 rounded-2xl">
                         <p>Content Hub view coming soon...</p>
                     </div>
                 );
             case "analytics":
                 return (
-                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg">
+                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg bg-white/60 rounded-2xl">
                         <p>Analytics view coming soon...</p>
                     </div>
                 );
             case "settings":
                 return (
-                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg">
+                    <div className="flex items-center justify-center min-h-[500px] text-gray-500 text-lg bg-white/60 rounded-2xl">
                         <p>Settings view coming soon...</p>
                     </div>
                 );

@@ -1,6 +1,9 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+/* Using the correct @tailwind directives for Next.js App Router.
+  This resolves the package path export error during the build process.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   /*
@@ -27,11 +30,4 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-}
-
-@layer utilities {
-  /* This layer is kept clean as requested.
-    The previous blob animation has been removed to align with the professional
-    aesthetic of the Implementation OS dashboard.
-  */
 }

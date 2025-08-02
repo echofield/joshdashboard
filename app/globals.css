@@ -1,11 +1,12 @@
-/*
-  This is the finalized version using the modern @tailwind directives 
-  required by your project's build setup. This resolves the package 
-  path export error.
-*/
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --spacing: 0.25rem;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
 
 @layer base {
   /*
@@ -18,18 +19,37 @@
     
     --card-bg: 255 255 255;      /* White */
     --card-border: 226 232 240; /* Light gray border: #e2e8f0 */
-
     --brand-purple: 139 92 246; /* #8B5CF6 */
     --brand-teal: 20 184 166;   /* #14B8A6 */
-
     --text-muted: 113 128 150; /* Muted gray: #718096 */
   }
-
+  
   body {
     font-family: 'Inter', sans-serif;
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
   }
 }

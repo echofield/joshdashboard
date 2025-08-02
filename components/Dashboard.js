@@ -11,9 +11,7 @@ import {
     Sparkles,
     Send,
     MessageSquare,
-    CalendarDays,
     RefreshCw,
-    MoreVertical,
     TrendingUp,
     Zap,
     Lock
@@ -129,14 +127,16 @@ function Dashboard() {
 
     const handleSendNudge = () => {
         console.log(`Sending nudge to ${nudgeData.client}: "${nudgeMessage}"`);
-        alert(`Nudge sent to ${nudgeData.client}!`);
+        // Note: Replaced alert with a console log for a better UX in production
+        console.log(`Nudge sent to ${nudgeData.client}!`);
         setNudgeData(null);
         setNudgeMessage('');
     };
     
     const handleSendBroadcast = () => {
         console.log(`Sending broadcast message: "${broadcastMessage}"`);
-        alert('Broadcast message sent to all clients!');
+        // Note: Replaced alert with a console log
+        console.log('Broadcast message sent to all clients!');
     };
 
     const refreshData = () => {
@@ -204,7 +204,7 @@ function Dashboard() {
                             {nudgeData ? (
                                 <>
                                     <p className="text-sm mb-3 text-gray-600">
-                                        For <span className="font-semibold">{nudgeData.client}</span>, who just completed: <span className="italic">"{nudgeData.task}"</span>
+                                        For <span className="font-semibold">{nudgeData.client}</span>, who just completed: <span className="italic">&ldquo;{nudgeData.task}&rdquo;</span>
                                     </p>
                                     <textarea
                                         value={isGeneratingNudge ? "Generating personalized message..." : nudgeMessage}

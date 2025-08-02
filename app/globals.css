@@ -1,5 +1,7 @@
-/* Using the correct @tailwind directives for Next.js App Router.
-  This resolves the package path export error during the build process.
+/*
+  This is the corrected version using the modern @tailwind directives 
+  required by your project's build setup. This resolves the package 
+  path export error.
 */
 @tailwind base;
 @tailwind components;
@@ -8,7 +10,7 @@
 @layer base {
   /*
     Defining the color palette for Josh W.'s theme using CSS variables.
-    This sets up the light theme with purple and teal accents as planned.
+    This sets up the light theme with a purple sidebar and teal accents.
   */
   :root {
     --background: 244 247 249; /* Light gray: #f4f7f9 */
